@@ -1,0 +1,65 @@
+.background {
+    position: relative;
+    width: 100%;
+    height: 100vh;
+    overflow: hidden;
+  }
+  
+  /* General circle styles */
+  .circle {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(80px);
+    opacity: 0.6;
+    z-index: 0;
+  }
+  
+  /* Pink */
+  .circle1 {
+    width: 250px;
+    height: 250px;
+    background: rgba(255, 182, 193, 0.7);
+    top: 10%;
+    left: 5%;
+  }
+  
+  /* Purple */
+  .circle2 {
+    width: 220px;
+    height: 220px;
+    background: rgba(186, 85, 211, 0.7);
+    top: 20%;
+    right: 10%;
+  }
+  
+  /* Blue */
+  .circle3 {
+    width: 200px;
+    height: 200px;
+    background: rgba(135, 206, 250, 0.7);
+    bottom: 15%;
+    left: 8%;
+  }
+  
+  /* Soft pink */
+  .circle4 {
+    width: 180px;
+    height: 180px;
+    background: rgba(255, 192, 203, 0.7);
+    bottom: 20%;
+    right: 15%;
+  }
+  
+  /* Extra purple for balance */
+  .circle5 {
+    width: 150px;
+    height: 150px;
+    background: rgba(221, 160, 221, 0.7);
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+  .main-card {
+    position: relative;
+    z-index: 1;
+  }  
