@@ -296,13 +296,7 @@ function CreateHabitModal({ open, setOpen, onCreate }) {
           <div className="font-semibold text-lg" style={{ color: THEME.text }}>
             Create habit
           </div>
-          <button
-            onClick={close}
-            className="h-8 px-3 rounded-xl text-sm"
-            style={{ background: THEME.greyChip, color: THEME.text, border: `1px solid ${THEME.cardBorder}` }}
-          >
-            Close
-          </button>
+          
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
