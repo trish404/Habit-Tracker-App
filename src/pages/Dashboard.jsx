@@ -322,8 +322,16 @@ function HeaderBar() {
         </div>
         <button className="px-3 py-1.5 text-sm rounded-xl" style={{ background: THEME.greyChip, color: THEME.text, border:`1px solid ${THEME.cardBorder}`, boxShadow: THEME.glow }}>
             + Habit</button>
+        <button className="px-3 py-1.5 text-sm rounded-xl" style={{ background: THEME.greyChip, color: THEME.text, border:`1px solid ${THEME.cardBorder}`, boxShadow: THEME.glow }}>
+            + Weight</button>
         <button className="px-3 py-1.5 text-sm rounded-xl" style={{ background: THEME.greyChip, color: THEME.text, border:`1px solid ${THEME.cardBorder}`, boxShadow: THEME.glow }}>+ Eat-out</button>
         <button className="px-3 py-1.5 text-sm rounded-xl" style={{ background: THEME.greyChip, color: THEME.text, border:`1px solid ${THEME.cardBorder}`, boxShadow: THEME.glow }}>+ Pages</button>
+        <button className="px-3 py-1.5 text-sm rounded-xl" style={{ background: THEME.greyChip, color: THEME.text, border:`1px solid ${THEME.cardBorder}`, boxShadow: THEME.glow }}>
+            + Smoking</button>
+        <button className="px-3 py-1.5 text-sm rounded-xl" style={{ background: THEME.greyChip, color: THEME.text, border:`1px solid ${THEME.cardBorder}`, boxShadow: THEME.glow }}>
+            + Drinking</button>
+        <button className="px-3 py-1.5 text-sm rounded-xl" style={{ background: THEME.greyChip, color: THEME.text, border:`1px solid ${THEME.cardBorder}`, boxShadow: THEME.glow }}>
+            + Medication</button>
       </div>
     </div>
   );
@@ -665,7 +673,7 @@ export default function Dashboard() {
                 <div>
                     <div className="text-sm tracking-wide" style={{color:THEME.sub}}>Blush & Bloom</div>
                         <div className="text-xl md:text-2xl font-semibold" style={{color:THEME.text}}>
-                            Welcome to your dashboard
+                            Welcome to your dashboard  🎀
                         </div>
                     </div>
                 <HeaderBar />
