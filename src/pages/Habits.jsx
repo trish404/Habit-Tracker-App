@@ -11,6 +11,7 @@ import {
   addWeeks,
   addYears,
   subMonths,
+  getDaysInMonth,
 } from "date-fns";
 import { Search, ChevronLeft, ChevronRight } from "lucide-react";
 
@@ -29,6 +30,8 @@ const THEME = {
 };
 
 const iso = (d) => format(d, "yyyy-MM-dd");
+const ym = (d) => format(d, "yyyy-MM");
+const yyyy = (d) => format(d, "yyyy");
 const todayIso = iso(new Date());
 
 const seedHabits = [
@@ -41,6 +44,22 @@ const seedHabits = [
 
 function classNames(...xs) {
   return xs.filter(Boolean).join(" ");
+}
+
+function hasAnyInRange(compSet, start, end) {
+  const days = eachDayOfInterval({ start, end });
+  for (const d of days) if (compSet.has(iso(d))) return true;
+  return false;
+}
+function hasAnyInMonth(compSet, y, m) {
+  const start = new Date(y, m, 1);
+  const end = endOfMonth(start);
+  return hasAnyInRange(compSet, start, end);
+}
+function hasAnyInYear(compSet, y) {
+  const start = new Date(y, 0, 1);
+  const end = new Date(y, 11, 31);
+  return hasAnyInRange(compSet, start, end);
 }
 
 // ---------- Cards ----------
@@ -103,7 +122,7 @@ function calcStreak(completions) {
 }
 
 // ---------- Calendars ----------
-function MonthGrid({ monthDate = new Date(), completions, onToggleDay, accent = THEME.pink }) {
+function MonthGrid({ monthDate = new Date(), completions, onToggleDay, accent = THEME.pink, highlightIso }) {
   const start = startOfWeek(startOfMonth(monthDate));
   const end = endOfWeek(endOfMonth(monthDate));
   const days = eachDayOfInterval({ start, end });
@@ -122,16 +141,22 @@ function MonthGrid({ monthDate = new Date(), completions, onToggleDay, accent = 
         {days.map((d) => {
           const inMonth = d.getMonth() === monthDate.getMonth();
           const isDone = compSet.has(iso(d));
+          const isHighlight = highlightIso && iso(d) === highlightIso;
           return (
             <button
               key={d.toISOString()}
               onClick={() => onToggleDay(d)}
-              className={classNames("aspect-square rounded-md text-xs flex items-center justify-center", inMonth ? "opacity-100" : "opacity-40")}
+              className={classNames(
+                "aspect-square rounded-md text-xs flex items-center justify-center",
+                inMonth ? "opacity-100" : "opacity-40",
+                isHighlight ? "ring-2 ring-offset-0" : ""
+              )}
               style={{
                 background: isDone ? `${accent}22` : THEME.card,
                 border: `1px solid ${isDone ? accent : THEME.cardBorder}`,
                 color: isDone ? THEME.text : THEME.sub,
               }}
+              title={iso(d)}
             >
               {format(d, "d")}
             </button>
@@ -142,22 +167,47 @@ function MonthGrid({ monthDate = new Date(), completions, onToggleDay, accent = 
   );
 }
 
-function WeeklyHeatmap({ weeks = 12, completions, onToggleDay, accent = THEME.pink }) {
-  const today = new Date();
-  const start = endOfWeek(addWeeks(today, -weeks + 1));
+// --- NEW: Weekly view as 4-blocks per month ---
+function WeeklyByMonthGrid({ year, completions, onToggleWeekBlock, accent = THEME.pink, highlightYM }) {
   const compSet = new Set(completions);
+  const months = Array.from({ length: 12 }, (_, m) => new Date(year, m, 1));
 
   return (
-    <div className="flex gap-1 overflow-x-auto p-2 rounded-2xl" style={{ border: `1px solid ${THEME.cardBorder}`, background: THEME.card, boxShadow: THEME.glow }}>
-      {Array.from({ length: weeks }).map((_, i) => {
-        const wStart = addWeeks(start, i);
-        const wDays = eachDayOfInterval({ start: wStart, end: endOfWeek(wStart) });
+    <div className="space-y-3">
+      {months.map((mDate, idx) => {
+        const daysIn = getDaysInMonth(mDate);
+        const ranges = [
+          { start: new Date(year, idx, 1), end: new Date(year, idx, Math.min(7, daysIn)) },
+          { start: new Date(year, idx, 8), end: new Date(year, idx, Math.min(14, daysIn)) },
+          { start: new Date(year, idx, 15), end: new Date(year, idx, Math.min(21, daysIn)) },
+          { start: new Date(year, idx, 22), end: new Date(year, idx, daysIn) },
+        ];
+        const monthKey = ym(mDate);
+        const monthHighlight = highlightYM && monthKey === highlightYM;
+
         return (
-          <div key={i} className="grid grid-rows-7 gap-1">
-            {wDays.map((d) => {
-              const isDone = compSet.has(iso(d));
-              return <button key={d.toISOString()} onClick={() => onToggleDay(d)} className="h-3 w-3 rounded-[3px]" style={{ background: isDone ? accent : THEME.greyChip, border: `1px solid ${THEME.cardBorder}` }} />;
-            })}
+          <div key={idx} className="flex items-center gap-3">
+            <div className="w-20 text-sm" style={{ color: THEME.sub }}>
+              {format(mDate, "MMM yyyy")}
+            </div>
+            <div className={classNames("grid grid-cols-4 gap-1 p-1 rounded-lg", monthHighlight ? "ring-2" : "")}
+                 style={{ background: THEME.card, border: `1px solid ${THEME.cardBorder}` }}>
+              {ranges.map((r, i) => {
+                const any = hasAnyInRange(compSet, r.start, r.end);
+                return (
+                  <button
+                    key={i}
+                    onClick={() => onToggleWeekBlock(r.start)}
+                    className="h-6 w-10 rounded-[5px]"
+                    style={{
+                      background: any ? accent : THEME.greyChip,
+                      border: `1px solid ${THEME.cardBorder}`,
+                    }}
+                    title={`${ym(r.start)} • W${i + 1}`}
+                  />
+                );
+              })}
+            </div>
           </div>
         );
       })}
@@ -165,29 +215,51 @@ function WeeklyHeatmap({ weeks = 12, completions, onToggleDay, accent = THEME.pi
   );
 }
 
-function YearStrip({ years = 5, completions, onToggleDay, accent = THEME.pink }) {
-  const today = new Date();
-  const start = addYears(today, -(years - 1));
+// --- NEW: Monthly view as 12 blocks per selected year ---
+function MonthlyByYearGrid({ year, completions, onToggleMonth, accent = THEME.pink, highlightYM }) {
   const compSet = new Set(completions);
-
   return (
-    <div className="space-y-3">
-      {Array.from({ length: years }).map((_, i) => {
-        const year = addYears(start, i);
-        const months = Array.from({ length: 12 }).map((_, m) => new Date(year.getFullYear(), m, 1));
+    <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+      {Array.from({ length: 12 }).map((_, m) => {
+        const any = hasAnyInMonth(compSet, year, m);
+        const mDate = new Date(year, m, 1);
+        const monthKey = ym(mDate);
+        const highlight = highlightYM && monthKey === highlightYM;
         return (
-          <div key={i} className="flex items-center gap-3">
-            <div className="w-16 text-sm" style={{ color: THEME.sub }}>
-              {format(year, "yyyy")}
-            </div>
-            <div className="flex gap-1">
-              {months.map((mDate, idx) => {
-                const monthKey = format(mDate, "yyyy-MM");
-                const any = Array.from(compSet).some((d) => d.startsWith(monthKey));
-                return <div key={idx} className="h-6 w-6 rounded-[4px]" style={{ background: any ? accent : THEME.greyChip, border: `1px solid ${THEME.cardBorder}` }} />;
-              })}
-            </div>
-          </div>
+          <button
+            key={m}
+            onClick={() => onToggleMonth(mDate)}
+            className={classNames("h-14 rounded-xl flex items-center justify-center text-sm", highlight ? "ring-2" : "")}
+            style={{ background: any ? `${accent}22` : THEME.card, border: `1px solid ${any ? accent : THEME.cardBorder}`, color: THEME.text }}
+            title={monthKey}
+          >
+            {format(mDate, "MMM")}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+// --- NEW: Fixed 2025–2040 yearly grid ---
+function FixedYearGrid({ completions, onToggleYear, accent = THEME.pink, highlightYYYY }) {
+  const compSet = new Set(completions);
+  const years = Array.from({ length: 16 }).map((_, i) => 2025 + i);
+  return (
+    <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
+      {years.map((y) => {
+        const any = hasAnyInYear(compSet, y);
+        const highlight = highlightYYYY && String(y) === highlightYYYY;
+        return (
+          <button
+            key={y}
+            onClick={() => onToggleYear(new Date(y, 0, 1))}
+            className={classNames("h-12 rounded-xl flex items-center justify-center text-sm", highlight ? "ring-2" : "")}
+            style={{ background: any ? `${accent}22` : THEME.card, border: `1px solid ${any ? accent : THEME.cardBorder}`, color: THEME.text }}
+            title={String(y)}
+          >
+            {y}
+          </button>
         );
       })}
     </div>
@@ -316,6 +388,9 @@ function CreateHabitModal({ open, setOpen, onCreate }) {
 function HabitDetail({ habit, setHabit, onClose }) {
   const [month, setMonth] = useState(new Date());
   const [tab, setTab] = useState(habit.frequency);
+  const [yearForWeekly, setYearForWeekly] = useState(new Date().getFullYear());
+  const [yearForMonthly, setYearForMonthly] = useState(new Date().getFullYear());
+  const [findKey, setFindKey] = useState(""); // yyyy or yyyy-mm or yyyy-mm-dd
 
   const toggleDay = (d) => {
     const key = iso(d);
@@ -324,9 +399,26 @@ function HabitDetail({ habit, setHabit, onClose }) {
     setHabit({ ...habit, completions: next });
   };
 
+  const handleToggleWeekBlock = (startDateOfBlock) => {
+    toggleDay(startDateOfBlock); // store representative date for that week block
+  };
+
+  const handleToggleMonth = (monthDate) => {
+    toggleDay(new Date(monthDate.getFullYear(), monthDate.getMonth(), 1));
+  };
+
+  const handleToggleYear = (jan1) => {
+    toggleDay(new Date(jan1.getFullYear(), 0, 1));
+  };
+
+  // parse highlight hints
+  const highlightYYYY = /^\d{4}$/.test(findKey) ? findKey : undefined;
+  const highlightYM = /^\d{4}-\d{2}$/.test(findKey) ? findKey : undefined;
+  const highlightIso = /^\d{4}-\d{2}-\d{2}$/.test(findKey) ? findKey : undefined;
+
   return (
     <div className="fixed inset-0 bg-black/30 z-40" onClick={onClose}>
-      <div className="absolute right-0 top-0 h-full w-full sm:w-[520px] p-4 overflow-y-auto" onClick={(e) => e.stopPropagation()} style={{ background: THEME.bgTo, borderLeft: `1px solid ${THEME.cardBorder}` }}>
+      <div className="absolute right-0 top-0 h-full w-full sm:w-[560px] p-4 overflow-y-auto" onClick={(e) => e.stopPropagation()} style={{ background: THEME.bgTo, borderLeft: `1px solid ${THEME.cardBorder}` }}>
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             <span className="text-2xl" style={{ color: habit.color }}>
@@ -344,6 +436,18 @@ function HabitDetail({ habit, setHabit, onClose }) {
           <button className="h-8 px-3 rounded-xl text-sm" onClick={onClose} style={{ background: THEME.greyChip, color: THEME.text, border: `1px solid ${THEME.cardBorder}` }}>
             Close
           </button>
+        </div>
+
+        {/* Side-panel "search" behaves differently: quick highlight finder */}
+        <div className="relative mb-3">
+          <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 opacity-60" />
+          <input
+            value={findKey}
+            onChange={(e) => setFindKey(e.target.value.trim())}
+            placeholder="Find (yyyy / yyyy-mm / yyyy-mm-dd)"
+            className="pl-8 h-9 w-full rounded-xl text-sm outline-none"
+            style={{ background: THEME.greyChip, color: THEME.text, border: `1px solid ${THEME.cardBorder}` }}
+          />
         </div>
 
         <div className="grid grid-cols-4 rounded-xl p-1 text-sm" style={{ border: `1px solid ${THEME.cardBorder}`, background: THEME.card }}>
@@ -377,28 +481,80 @@ function HabitDetail({ habit, setHabit, onClose }) {
                 <ChevronRight className="h-4 w-4" />
               </button>
             </div>
-            <MonthGrid monthDate={month} completions={habit.completions} onToggleDay={toggleDay} accent={habit.color} />
+            <MonthGrid monthDate={month} completions={habit.completions} onToggleDay={toggleDay} accent={habit.color} highlightIso={highlightIso} />
           </div>
         )}
 
         {tab === "weekly" && (
-          <div className="mt-4">
-            <WeeklyHeatmap weeks={20} completions={habit.completions} onToggleDay={toggleDay} accent={habit.color} />
+          <div className="mt-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <button
+                onClick={() => setYearForWeekly((y) => y - 1)}
+                className="h-8 px-3 rounded-xl text-sm"
+                style={{ background: THEME.greyChip, color: THEME.text, border: `1px solid ${THEME.cardBorder}` }}
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+              <div className="font-medium" style={{ color: THEME.text }}>
+                {yearForWeekly}
+              </div>
+              <button
+                onClick={() => setYearForWeekly((y) => y + 1)}
+                className="h-8 px-3 rounded-xl text-sm"
+                style={{ background: THEME.greyChip, color: THEME.text, border: `1px solid ${THEME.cardBorder}` }}
+              >
+                <ChevronRight className="h-4 w-4" />
+              </button>
+            </div>
+            <WeeklyByMonthGrid
+              year={yearForWeekly}
+              completions={habit.completions}
+              onToggleWeekBlock={handleToggleWeekBlock}
+              accent={habit.color}
+              highlightYM={highlightYM}
+            />
           </div>
         )}
 
         {tab === "monthly" && (
-          <div className="mt-4">
-            <MonthGrid monthDate={new Date()} completions={habit.completions} onToggleDay={toggleDay} accent={habit.color} />
-            <div className="text-xs mt-2" style={{ color: THEME.sub }}>
-              Click a day to toggle completion.
+          <div className="mt-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <button
+                onClick={() => setYearForMonthly((y) => y - 1)}
+                className="h-8 px-3 rounded-xl text-sm"
+                style={{ background: THEME.greyChip, color: THEME.text, border: `1px solid ${THEME.cardBorder}` }}
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+              <div className="font-medium" style={{ color: THEME.text }}>
+                {yearForMonthly}
+              </div>
+              <button
+                onClick={() => setYearForMonthly((y) => y + 1)}
+                className="h-8 px-3 rounded-xl text-sm"
+                style={{ background: THEME.greyChip, color: THEME.text, border: `1px solid ${THEME.cardBorder}` }}
+              >
+                <ChevronRight className="h-4 w-4" />
+              </button>
             </div>
+            <MonthlyByYearGrid
+              year={yearForMonthly}
+              completions={habit.completions}
+              onToggleMonth={handleToggleMonth}
+              accent={habit.color}
+              highlightYM={highlightYM}
+            />
           </div>
         )}
 
         {tab === "yearly" && (
           <div className="mt-4">
-            <YearStrip years={5} completions={habit.completions} onToggleDay={toggleDay} accent={habit.color} />
+            <FixedYearGrid
+              completions={habit.completions}
+              onToggleYear={handleToggleYear}
+              accent={habit.color}
+              highlightYYYY={highlightYYYY}
+            />
           </div>
         )}
       </div>
@@ -434,64 +590,63 @@ export default function HabitsPage() {
     setDetailHabit(updated);
   };
 
-  // ---- full-bleed shell to match Dashboard ----
   return (
     <div className="fixed inset-0 overflow-y-auto" style={{ background: `linear-gradient(180deg, ${THEME.bgFrom}, ${THEME.bgTo})` }}>
       <div className="w-full h-full p-4 md:p-6 space-y-6">
-        {/* Header */}
+        {/* Header (now includes Search) */}
         <div
           className="sticky top-0 z-30 -mx-4 md:-mx-6 px-4 md:px-6 py-4 backdrop-blur"
           style={{ background: "#0b0b0c", borderBottom: `1px solid ${THEME.cardBorder}` }}
         >
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div>
               <h1 className="text-2xl md:text-3xl font-semibold" style={{ color: THEME.text }}>
-                Your Habits
+                Your Habits 🩷
               </h1>
               <p className="text-xs md:text-sm" style={{ color: THEME.sub }}>
                 Create, color, and track daily / weekly / monthly / yearly habits.
               </p>
             </div>
-            <button
-              onClick={() => setOpenCreate(true)}
-              className="h-9 px-3 rounded-xl text-sm"
-              style={{ background: THEME.greyChip, color: THEME.text, border: `1px solid ${THEME.cardBorder}`, boxShadow: THEME.glow }}
-            >
-              + Create Habit
-            </button>
+
+            <div className="flex items-center gap-2 w-full md:w-auto">
+              <div className="relative flex-1 md:w-72">
+                <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 opacity-60" />
+                <input
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder="Search habits"
+                  className="pl-8 h-9 w-full rounded-xl text-sm outline-none"
+                  style={{ background: THEME.greyChip, color: THEME.text, border: `1px solid ${THEME.cardBorder}` }}
+                />
+              </div>
+              <button
+                onClick={() => setOpenCreate(true)}
+                className="h-9 px-3 rounded-xl text-sm shrink-0"
+                style={{ background: THEME.greyChip, color: THEME.text, border: `1px solid ${THEME.cardBorder}`, boxShadow: THEME.glow }}
+              >
+                + Create Habit
+              </button>
+            </div>
           </div>
         </div>
 
-        {/* View chips + search */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-          <div className="inline-flex rounded-xl overflow-hidden" style={{ border: `1px solid ${THEME.cardBorder}` }}>
-            {[
-              { k: "daily", label: "Daily" },
-              { k: "weekly", label: "Weekly" },
-              { k: "monthly", label: "Monthly" },
-              { k: "yearly", label: "Yearly" },
-            ].map((t) => (
-              <button
-                key={t.k}
-                onClick={() => setActiveFreq(t.k)}
-                className="px-3 py-1.5 text-sm"
-                style={activeFreq === t.k ? { background: THEME.pink, color: "#0b0b0c" } : { background: THEME.greyChip, color: THEME.text }}
-              >
-                {t.label}
-              </button>
-            ))}
-          </div>
-
-          <div className="relative w-full md:w-72">
-            <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 opacity-60" />
-            <input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search habits"
-              className="pl-8 h-9 w-full rounded-xl text-sm outline-none"
-              style={{ background: THEME.greyChip, color: THEME.text, border: `1px solid ${THEME.cardBorder}` }}
-            />
-          </div>
+        {/* View chips (search removed from here) */}
+        <div className="inline-flex rounded-xl overflow-hidden" style={{ border: `1px solid ${THEME.cardBorder}` }}>
+          {[
+            { k: "daily", label: "Daily" },
+            { k: "weekly", label: "Weekly" },
+            { k: "monthly", label: "Monthly" },
+            { k: "yearly", label: "Yearly" },
+          ].map((t) => (
+            <button
+              key={t.k}
+              onClick={() => setActiveFreq(t.k)}
+              className="px-3 py-1.5 text-sm"
+              style={activeFreq === t.k ? { background: THEME.pink, color: "#0b0b0c" } : { background: THEME.greyChip, color: THEME.text }}
+            >
+              {t.label}
+            </button>
+          ))}
         </div>
 
         {/* Cards Grid */}
