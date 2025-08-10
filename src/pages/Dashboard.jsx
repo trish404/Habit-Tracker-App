@@ -17,15 +17,16 @@ import {
 } from "recharts";
 
 const THEME = {
-    bgFrom: "#0b0b0c",   // near‑black
-    bgTo:   "#121214",   // deep grey
+    bgFrom: "#0b0b0c",
+    bgTo:   "#0b0b0c",       // solid black header/background
     card:   "rgba(255,255,255,0.06)",
-    cardBorder: "rgba(255,255,255,0.08)",
-    text:   "#e9e9ea",
-    sub:    "#a6a6ab",
-    pink:   "#f472b6",   // tailwind rose-400-ish
-    pinkDark: "#e11d48", // rose-600-ish
+    cardBorder: "rgba(255,255,255,0.10)",
+    text:   "#F5F5F6",       // off‑white
+    sub:    "#B8B8BC",       // muted off‑white
+    pink:   "#f472b6",
+    pinkDark: "#e11d48",
     greyChip: "rgba(233,233,234,0.08)",
+    glow:   "0 0 28px 6px rgba(244,114,182,0.18)" // pink glow for boxes
   };
 
 /***********************\
@@ -241,7 +242,7 @@ function Card({ title, action, children, className = "" }) {
     <div className={'rounded-2xl backdrop-blur p-4 ${className}'} style={{ background: THEME.card, border: '1px solid ${THEME.cardBorder}' }}>
       {(title || action) && (
         <div className="mb-3 flex items-center justify-between">
-          <h3 className="text-sm font-medium text-zinc-700 dark:text-zinc-200">{title}</h3>
+          <h3 className="text-sm font-medium" style={{color:THEME.text}}>{title}</h3>
           {action}
         </div>
       )}
@@ -519,15 +520,20 @@ function InsightsCard() {
 export default function Dashboard() {
   return (
     <div className="fixed inset-0 overflow-y-auto" style={{
-        background: `radial-gradient(1200px 600px at 10% -10%, ${THEME.pink}22, transparent 50%),
-                     radial-gradient(1000px 500px at 90% 0%, ${THEME.pinkDark}1A, transparent 60%),
-                     linear-gradient(180deg, ${THEME.bgFrom}, ${THEME.bgTo})`
-      }}>
+        background: `linear-gradient(180deg, ${THEME.bgFrom}, ${THEME.bgTo})`
+        }}>
       <div className="w-full h-full p-4 md:p-6 space-y-4 max-w-none">
-      <div className="sticky top-0 z-30 -mx-4 md:-mx-6 px-4 md:px-6 py-2
-                        bg-gradient-to-b from-zinc-50/80 to-transparent
-                        dark:from-zinc-950/60 backdrop-blur">
-        <HeaderBar />
+      <div className="sticky top-0 z-30 -mx-4 md:-mx-6 px-4 md:px-6 py-4 backdrop-blur"
+        style={{background:"#0b0b0c", borderBottom:`1px solid ${THEME.cardBorder}`}}>
+            <div className="flex items-end justify-between">
+                <div>
+                    <div className="text-sm tracking-wide" style={{color:THEME.sub}}>Blush & Bloom</div>
+                        <div className="text-xl md:text-2xl font-semibold" style={{color:THEME.text}}>
+                            Welcome to your dashboard
+                        </div>
+                    </div>
+                <HeaderBar />
+            </div>
         </div>
         <KPIRow />
 
