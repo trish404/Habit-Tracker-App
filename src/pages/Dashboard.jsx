@@ -16,14 +16,17 @@ import {
   Area,
 } from "recharts";
 
-/*
-  BloomTrack Dashboard — single-file scaffold
-  - Tailwind-first layout
-  - Zustand store with memoized selectors
-  - Dummy data + helpers
-  - KPI row, Today grid, Adherence sparkline, Spend bars, Right-rail cards
-  You can split into files later. Keep this as /src/pages/Dashboard.jsx and route to it.
-*/
+const THEME = {
+    bgFrom: "#0b0b0c",   // near‑black
+    bgTo:   "#121214",   // deep grey
+    card:   "rgba(255,255,255,0.06)",
+    cardBorder: "rgba(255,255,255,0.08)",
+    text:   "#e9e9ea",
+    sub:    "#a6a6ab",
+    pink:   "#f472b6",   // tailwind rose-400-ish
+    pinkDark: "#e11d48", // rose-600-ish
+    greyChip: "rgba(233,233,234,0.08)",
+  };
 
 /***********************\
 |*  LIGHT DATA LAYER   *|
@@ -235,7 +238,7 @@ function useSpendSeries(days = 30) {
 
 function Card({ title, action, children, className = "" }) {
   return (
-    <div className={`rounded-2xl bg-white/70 dark:bg-zinc-900/70 backdrop-blur border border-zinc-200/60 dark:border-zinc-800/60 p-4 ${className}`}>
+    <div className={'rounded-2xl backdrop-blur p-4 ${className}'} style={{ background: THEME.card, border: '1px solid ${THEME.cardBorder}' }}>
       {(title || action) && (
         <div className="mb-3 flex items-center justify-between">
           <h3 className="text-sm font-medium text-zinc-700 dark:text-zinc-200">{title}</h3>
@@ -249,9 +252,9 @@ function Card({ title, action, children, className = "" }) {
 
 function KPI({ label, value, sub }) {
   return (
-    <div className="rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-4">
-      <div className="text-xs text-zinc-500 mb-1">{label}</div>
-      <div className="text-2xl font-semibold">{value}</div>
+    <div className="rounded-2xl p-4" style={{ background: THEME.card, border:`1px solid ${THEME.cardBorder}` }}>
+      <div className="text-xs mb-1" style={{color:THEME.sub}}>{label}</div>
+      <div className="text-2xl font-semibold" style={{color:THEME.text}}>{value}</div>
       {sub && <div className="text-xs text-zinc-500 mt-1">{sub}</div>}
     </div>
   );
@@ -277,15 +280,19 @@ function HeaderBar() {
             <button
               key={n}
               onClick={() => setRangeDays(n)}
-              className={`px-3 py-1.5 text-sm ${rangeDays === n ? "bg-zinc-900 text-white" : "bg-white dark:bg-zinc-900 text-zinc-700 dark:text-zinc-200"}`}
+              className={`px-3 py-1.5 text-sm rounded-xl`}
+              style={ rangeDays===n
+                ? { background: THEME.pink, color: "#0b0b0c" }
+                : { background: THEME.greyChip, color: THEME.text } }
             >
               {n}d
             </button>
           ))}
         </div>
-        <button className="px-3 py-1.5 text-sm rounded-xl border border-zinc-200 dark:border-zinc-800">+ Habit</button>
-        <button className="px-3 py-1.5 text-sm rounded-xl border border-zinc-200 dark:border-zinc-800">+ Eat-out</button>
-        <button className="px-3 py-1.5 text-sm rounded-xl border border-zinc-200 dark:border-zinc-800">+ Pages</button>
+        <button className="px-3 py-1.5 text-sm rounded-xl" style={{ background: THEME.greyChip, color: THEME.text, border:`1px solid ${THEME.cardBorder}` }}>
+            + Habit</button>
+        <button className="px-3 py-1.5 text-sm rounded-xl" style={{ background: THEME.greyChip, color: THEME.text, border:`1px solid ${THEME.cardBorder}` }}>+ Eat-out</button>
+        <button className="px-3 py-1.5 text-sm rounded-xl" style={{ background: THEME.greyChip, color: THEME.text, border:`1px solid ${THEME.cardBorder}` }}>+ Pages</button>
       </div>
     </div>
   );
@@ -325,11 +332,16 @@ function TodayGrid() {
             <button
               key={h.id}
               onClick={() => toggle(h.id)}
-              className={`text-left rounded-2xl border p-4 transition active:scale-[.98] ${done ? "border-transparent bg-gradient-to-r from-zinc-900 to-zinc-800 text-white" : "border-zinc-200 dark:border-zinc-800"}`}
+              className="text-left rounded-2xl p-4 transition active:scale-[.98]"
+                style={ done
+                    ? { background: `linear-gradient(90deg, ${THEME.pink}33, ${THEME.pinkDark}22)`,
+                        border:`1px solid ${THEME.pink}55`, color: THEME.text }
+                    : { background: THEME.card, border:`1px solid ${THEME.cardBorder}`, color: THEME.text } }
             >
               <div className="flex items-center justify-between">
                 <div className="font-medium">{h.name}</div>
-                <span className="text-[10px] px-2 py-0.5 rounded-full" style={{ background: h.color + "22", color: h.color }}>
+                <span className="text-[10px] px-2 py-0.5 rounded-full"
+                    style={{ background: THEME.greyChip, color: THEME.sub, border:`1px solid ${THEME.cardBorder}` }}>
                   {h.type.toUpperCase()}
                 </span>
               </div>
@@ -353,20 +365,47 @@ function AdherenceSparkline() {
           <AreaChart data={data}>
             <defs>
               <linearGradient id="grad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#8b5cf6" stopOpacity={0.5} />
-                <stop offset="100%" stopColor="#8b5cf6" stopOpacity={0.05} />
+                <stop offset="0%" stopColor={THEME.pink} stopOpacity={0.6} />
+                <stop offset="100%" stopColor={THEME.pink} stopOpacity={0.08} />
               </linearGradient>
             </defs>
             <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
             <XAxis dataKey="x" hide />
             <YAxis domain={[0, 100]} tickFormatter={(v) => `${v}%`} width={30} />
             <Tooltip formatter={(v) => `${v}%`} labelFormatter={(l) => `Day ${l}`} />
-            <Area type="monotone" dataKey="y" stroke="#8b5cf6" fill="url(#grad)" />
+            <Area type="monotone" dataKey="y" stroke={THEME.pink} fill="url(#grad)" />
           </AreaChart>
         </ResponsiveContainer>
       </div>
     </Card>
   );
+}
+function Heart({ x, y, size=12, fill=THEME.pink }) {
+    const s = size;
+    const path = `
+      M ${x} ${y + s*0.3}
+      C ${x} ${y + s*0.1}, ${x + s*0.2} ${y}, ${x + s*0.35} ${y}
+      C ${x + s*0.6} ${y}, ${x + s*0.6} ${y + s*0.35}, ${x + s*0.6} ${y + s*0.35}
+      C ${x + s*0.6} ${y + s*0.35}, ${x + s*1.2} ${y + s*0.1}, ${x + s*1.2} ${y + s*0.45}
+      C ${x + s*1.2} ${y + s*0.8}, ${x + s*0.9} ${y + s*1.05}, ${x + s*0.6} ${y + s*1.3}
+      C ${x + s*0.3} ${y + s*1.05}, ${x} ${y + s*0.8}, ${x} ${y + s*0.45} Z`;
+    return <path d={path} fill={fill} opacity={0.95} />;
+}
+
+function HeartBarShape(props) {
+    const { x, y, width, height, value } = props;
+    const heartH = 12;          // px height of each heart
+    const gap = 2;              // gap between hearts
+    const count = Math.max(1, Math.floor(height / (heartH + gap)));
+    const bottom = y + height;
+    const hearts = [];
+    for (let i = 0; i < count; i++) {
+      const hy = bottom - (i + 1) * (heartH + gap);
+      hearts.push(
+        <Heart key={i} x={x + (width - heartH*1.2)/2} y={hy} size={heartH} fill={i % 4 === 0 ? THEME.pinkDark : THEME.pink} />
+      );
+    }
+    return <g>{hearts}</g>;
 }
 
 function SpendBars() {
@@ -377,12 +416,12 @@ function SpendBars() {
       <div className="h-44 lg:h-56">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={series}>
-            <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
-            <XAxis dataKey="dateISO" />
-            <YAxis />
-            <Tooltip />
-            <Legend />
-            <Bar dataKey="amount" name="₹" fill="#10b981" radius={[6,6,0,0]} />
+            <CartesianGrid strokeDasharray="3 3" stroke={THEME.cardBorder} />
+            <XAxis dataKey="dateISO" tick={{ fill: THEME.sub }} />
+            <YAxis tick={{ fill: THEME.sub }} />
+            <Tooltip contentStyle={{ background: THEME.card, border:`1px solid ${THEME.cardBorder}`, color: THEME.text }} />
+            <Legend wrapperStyle={{ color: THEME.sub }} />
+            <Bar dataKey="amount" name="Spend" shape={<HeartBarShape />} />
           </BarChart>
         </ResponsiveContainer>
       </div>
@@ -426,7 +465,8 @@ function EatOutCard() {
           <div className="text-xs text-zinc-500">{outings} outings • avg ₹{avg}</div>
         </div>
         {budget && (
-          <div className={`px-3 py-1.5 rounded-xl text-xs ${paceWarn ? "bg-red-50 text-red-600" : "bg-emerald-50 text-emerald-600"}`}>
+          <div className="px-3 py-1.5 rounded-xl text-xs"
+            style={{ background: THEME.greyChip, color: paceWarn ? THEME.pink : THEME.text, border:`1px solid ${THEME.cardBorder}` }}>
             {paceWarn ? "Over pace" : "On pace"}
           </div>
         )}
@@ -478,7 +518,11 @@ function InsightsCard() {
 
 export default function Dashboard() {
   return (
-    <div className="fixed inset-0 overflow-y-auto bg-gradient-to-b from-zinc-50 to-white dark:from-zinc-950 dark:to-zinc-900">
+    <div className="fixed inset-0 overflow-y-auto" style={{
+        background: `radial-gradient(1200px 600px at 10% -10%, ${THEME.pink}22, transparent 50%),
+                     radial-gradient(1000px 500px at 90% 0%, ${THEME.pinkDark}1A, transparent 60%),
+                     linear-gradient(180deg, ${THEME.bgFrom}, ${THEME.bgTo})`
+      }}>
       <div className="w-full h-full p-4 md:p-6 space-y-4 max-w-none">
       <div className="sticky top-0 z-30 -mx-4 md:-mx-6 px-4 md:px-6 py-2
                         bg-gradient-to-b from-zinc-50/80 to-transparent
