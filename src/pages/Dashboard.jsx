@@ -120,6 +120,7 @@ function genBookLogs(days = 45) {
 }
 
 const useStore = create((set, get) => ({
+  weights: genWeights(180, 63.5),
   rangeDays: 30,
   habits: seedHabits,
   habitLogs: genRangeLogs(120),
@@ -127,6 +128,8 @@ const useStore = create((set, get) => ({
   books: genBooks(),
   bookLogs: genBookLogs(60),
   settings: { monthlyBudgetEatOut: 6000 },
+  selectedHabitId: seedHabits[0].id,
+  setSelectedHabitId: (id) => set({ selectedHabitId: id }),
   setRangeDays: (n) => set({ rangeDays: n }),
   toggleDoneToday: (habitId) => {
     const dateISO = todayISO();
@@ -233,6 +236,37 @@ function useSpendSeries(days = 30) {
   return range.map((d) => ({ dateISO: d.slice(5), amount: map.get(d) }));
 }
 
+function useHabitHeatmap(days=168) { // 24 weeks (~6 months)
+    const habits = useStore(s => s.habits);
+    const logs = useStore(s => s.habitLogs);
+    const habitId = useStore(s => s.selectedHabitId);
+    const habit = habits.find(h=>h.id===habitId) || habits[0];
+  
+    const daysList = lastNDays(days); // oldest -> newest
+    const data = daysList.map(d => {
+      const done = logs.some(l => l.habitId===habit.id && l.dateISO===d && l.done);
+      return { dateISO: d, value: done ? 1 : 0 };
+    });
+  
+    return { habit, data };
+}
+
+function useWeightSeries(days=120){
+    const weights = useStore(s=>s.weights);
+    const range = lastNDays(days);
+    const map = new Map(range.map(d=>[d, null]));
+    weights.forEach(w=>{ if(map.has(w.dateISO)) map.set(w.dateISO, w.kg); });
+    // forward-fill nulls so line is continuous
+    let last = null;
+    const series = range.map(d=>{
+      const v = map.get(d);
+      if(v!=null) last=v;
+      return { x: d.slice(5), kg: last };
+    });
+    const latest = weights[weights.length-1]?.kg ?? null;
+    return { series, latest };
+}
+  
 /***********************\
 |*   UI PRIMITIVES     *|
 \***********************/
@@ -294,6 +328,93 @@ function HeaderBar() {
     </div>
   );
 }
+function HabitHeatmap() {
+    const THEME_LOCAL = THEME; // use your theme
+    const { habit, data } = useHabitHeatmap(7*72); // 24 weeks
+    const habits = useStore(s=>s.habits);
+    const setSelectedHabitId = useStore(s=>s.setSelectedHabitId);
+  
+    // grid: columns = weeks, rows = Mon..Sun
+    const weeks = [];
+    for (let i = 0; i < data.length; i += 7) weeks.push(data.slice(i, i+7));
+    // color scale: 0 = chip grey, 1 = pink
+    const color = v => v ? THEME_LOCAL.pink : THEME_LOCAL.greyChip;
+  
+    return (
+      <Card title="Habit heatmap" className="">
+        <div className="mb-3 flex items-center gap-2">
+          <span className="text-xs" style={{color:THEME.sub}}>Habit</span>
+          <select
+            className="text-sm rounded-lg px-2 py-1 outline-none"
+            style={{ background: THEME.greyChip, color: THEME.text, border:`1px solid ${THEME.cardBorder}` }}
+            value={habit.id}
+            onChange={e=>setSelectedHabitId(e.target.value)}
+          >
+            {habits.map(h=>(
+              <option key={h.id} value={h.id} style={{background:"#0b0b0c"}}>{h.name}</option>
+            ))}
+          </select>
+        </div>
+  
+        <div className="flex gap-1 overflow-x-auto">
+          {/* y labels */}
+          <div className="flex flex-col justify-between py-1 pr-2 text-[10px]" style={{color:THEME.sub}}>
+            <span>Mon</span><span>Wed</span><span>Fri</span><span>Sun</span>
+          </div>
+          {/* grid */}
+          <div className="flex gap-1">
+            {weeks.map((week, wi)=>(
+              <div key={wi} className="flex flex-col gap-1">
+                {week.map((d, di)=>(
+                  <div key={di}
+                    title={`${d.dateISO} • ${d.value? "Done":"Missed"}`}
+                    className="w-3 h-3 rounded-[3px]"
+                    style={{
+                      background: color(d.value),
+                      border:`1px solid ${THEME.cardBorder}`
+                    }}
+                  />
+                ))}
+              </div>
+            ))}
+          </div>
+        </div>
+  
+        <div className="mt-3 text-xs" style={{color:THEME.sub}}>
+          Last {weeks.length} weeks • {habit.name}
+        </div>
+      </Card>
+    );
+  }
+  
+  // --- Weight Tracker ---
+function WeightTracker() {
+    const { series, latest } = useWeightSeries(120);
+    return (
+      <Card title="Weight" className="">
+        <div className="mb-2 text-sm" style={{color:THEME.sub}}>
+          Latest: <span style={{color:THEME.pink, fontWeight:600}}>{latest ? `${latest} kg` : "—"}</span>
+        </div>
+        <div className="h-40 lg:h-48">
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart data={series}>
+              <defs>
+                <linearGradient id="wgrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor={THEME.pink} stopOpacity={0.45}/>
+                  <stop offset="100%" stopColor={THEME.pink} stopOpacity={0.06}/>
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke={THEME.cardBorder}/>
+              <XAxis dataKey="x" tick={{ fill: THEME.sub }} />
+              <YAxis tick={{ fill: THEME.sub }} width={40}/>
+              <Tooltip contentStyle={{ background: THEME.card, border:`1px solid ${THEME.cardBorder}`, color: THEME.text }}/>
+              <Area type="monotone" dataKey="kg" stroke={THEME.pink} fill="url(#wgrad)" />
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
+      </Card>
+    );
+  }
 
 function KPIRow() {
   const { pct, completedDueToday, totalDueToday } = useTodayStats();
@@ -511,6 +632,23 @@ function InsightsCard() {
   );
 }
 
+function getDateISO(d) { const z=new Date(d); z.setHours(0,0,0,0); return z.toISOString().slice(0,10); }
+function lastNDays(n){
+  const out=[]; const t=new Date();
+  for(let i=n-1;i>=0;i--) out.push(getDateISO(addDays(t,-i)));
+  return out;
+}
+
+function genWeights(days=120, startKg=63){
+    const out=[]; let v=startKg;
+    for(let i=days-1;i>=0;i--){
+      v += (Math.random()-0.5)*0.15; // gentle noise
+      v = Math.round(v*10)/10;
+      out.push({ id:`w-${i}`, dateISO: todayISO(addDays(new Date(),-i)), kg:v });
+    }
+    return out;
+}
+
 /***********************\
 |*   PAGE COMPOSITION  *|
 \***********************/
@@ -543,18 +681,20 @@ export default function Dashboard() {
               <AdherenceSparkline />
               <SpendBars />
             </div>
+            <HabitHeatmap />
           </div>
           {/* Right rail */}
           <div className="col-span-12 lg:col-span-4 xl:col-span-3 space-y-4">
             <StreaksCard />
             <EatOutCard />
             <BookCard />
+            <WeightTracker />
             <InsightsCard />
           </div>
         </div>
 
         <footer className="pt-8 text-center text-xs text-zinc-500">
-          Built with ❤ — scaffold. Hook up real data and tweak palettes/typography to match your brand.
+          
         </footer>
       </div>
     </div>
