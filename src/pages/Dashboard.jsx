@@ -26,7 +26,7 @@ const THEME = {
     pink:   "#f472b6",
     pinkDark: "#e11d48",
     greyChip: "rgba(233,233,234,0.08)",
-    glow:   "0 0 28px 6px rgba(244,114,182,0.18)" // pink glow for boxes
+    glow:   "0 0 10px rgba(244,114,182,0.3)" // pink glow for boxes
   };
 
 /***********************\
@@ -239,7 +239,7 @@ function useSpendSeries(days = 30) {
 
 function Card({ title, action, children, className = "" }) {
   return (
-    <div className={'rounded-2xl backdrop-blur p-4 ${className}'} style={{ background: THEME.card, border: '1px solid ${THEME.cardBorder}' }}>
+    <div className={'rounded-2xl backdrop-blur p-4 ${className}'} style={{ background: THEME.card, border: '1px solid ${THEME.cardBorder}' , boxShadow: THEME.glow}}>
       {(title || action) && (
         <div className="mb-3 flex items-center justify-between">
           <h3 className="text-sm font-medium" style={{color:THEME.text}}>{title}</h3>
@@ -253,7 +253,7 @@ function Card({ title, action, children, className = "" }) {
 
 function KPI({ label, value, sub }) {
   return (
-    <div className="rounded-2xl p-4" style={{ background: THEME.card, border:`1px solid ${THEME.cardBorder}` }}>
+    <div className="rounded-2xl p-4" style={{ background: THEME.card, border:`1px solid ${THEME.cardBorder}`, boxShadow: THEME.glow }}>
       <div className="text-xs mb-1" style={{color:THEME.sub}}>{label}</div>
       <div className="text-2xl font-semibold" style={{color:THEME.text}}>{value}</div>
       {sub && <div className="text-xs text-zinc-500 mt-1">{sub}</div>}
@@ -271,10 +271,6 @@ function HeaderBar() {
 
   return (
     <div className="flex items-center justify-between gap-2">
-      <div className="flex items-center gap-3">
-        <div className="text-lg font-semibold">Blush & Bloom</div>
-        <div className="hidden sm:block text-sm text-zinc-500">Dashboard</div>
-      </div>
       <div className="flex items-center gap-2">
         <div className="inline-flex rounded-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden">
           {[7, 30, 60, 90].map((n) => (
@@ -290,10 +286,10 @@ function HeaderBar() {
             </button>
           ))}
         </div>
-        <button className="px-3 py-1.5 text-sm rounded-xl" style={{ background: THEME.greyChip, color: THEME.text, border:`1px solid ${THEME.cardBorder}` }}>
+        <button className="px-3 py-1.5 text-sm rounded-xl" style={{ background: THEME.greyChip, color: THEME.text, border:`1px solid ${THEME.cardBorder}`, boxShadow: THEME.glow }}>
             + Habit</button>
-        <button className="px-3 py-1.5 text-sm rounded-xl" style={{ background: THEME.greyChip, color: THEME.text, border:`1px solid ${THEME.cardBorder}` }}>+ Eat-out</button>
-        <button className="px-3 py-1.5 text-sm rounded-xl" style={{ background: THEME.greyChip, color: THEME.text, border:`1px solid ${THEME.cardBorder}` }}>+ Pages</button>
+        <button className="px-3 py-1.5 text-sm rounded-xl" style={{ background: THEME.greyChip, color: THEME.text, border:`1px solid ${THEME.cardBorder}`, boxShadow: THEME.glow }}>+ Eat-out</button>
+        <button className="px-3 py-1.5 text-sm rounded-xl" style={{ background: THEME.greyChip, color: THEME.text, border:`1px solid ${THEME.cardBorder}`, boxShadow: THEME.glow }}>+ Pages</button>
       </div>
     </div>
   );
@@ -335,8 +331,8 @@ function TodayGrid() {
               onClick={() => toggle(h.id)}
               className="text-left rounded-2xl p-4 transition active:scale-[.98]"
                 style={ done
-                    ? { background: `linear-gradient(90deg, ${THEME.pink}33, ${THEME.pinkDark}22)`,
-                        border:`1px solid ${THEME.pink}55`, color: THEME.text }
+                    ? { background: `linear-gradient(90deg, ${THEME.pink}22, ${THEME.pinkDark}22)`,
+                        border:`1px solid ${THEME.pink}66`, color: THEME.text }
                     : { background: THEME.card, border:`1px solid ${THEME.cardBorder}`, color: THEME.text } }
             >
               <div className="flex items-center justify-between">
@@ -370,10 +366,11 @@ function AdherenceSparkline() {
                 <stop offset="100%" stopColor={THEME.pink} stopOpacity={0.08} />
               </linearGradient>
             </defs>
-            <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
-            <XAxis dataKey="x" hide />
-            <YAxis domain={[0, 100]} tickFormatter={(v) => `${v}%`} width={30} />
-            <Tooltip formatter={(v) => `${v}%`} labelFormatter={(l) => `Day ${l}`} />
+            <CartesianGrid strokeDasharray="3 3" stroke={THEME.cardBorder} />
+            <XAxis dataKey="x" tick={{ fill: THEME.sub }} />
+            <YAxis domain={[0,100]} tickFormatter={(v)=>`${v}%`} tick={{ fill: THEME.sub }} width={36} />
+            <Tooltip formatter={(v)=>`${v}%`} labelFormatter={(l)=>`Day ${l}`}
+                contentStyle={{ background: THEME.card, border:`1px solid ${THEME.cardBorder}`, color: THEME.text }} />
             <Area type="monotone" dataKey="y" stroke={THEME.pink} fill="url(#grad)" />
           </AreaChart>
         </ResponsiveContainer>
@@ -440,15 +437,15 @@ function StreaksCard() {
     <Card title="Streaks (no smoking/drinking)">
       <div className="grid grid-cols-3 gap-2 text-center">
         <div>
-          <div className="text-2xl font-semibold">{current}</div>
+        <div className="text-2xl font-semibold" style={{color:THEME.pink}}>{current}</div>
           <div className="text-xs text-zinc-500">Current</div>
         </div>
         <div>
-          <div className="text-2xl font-semibold">{longest}</div>
+          <div className="text-2xl font-semibold" style={{color:THEME.pink}}>{longest}</div>
           <div className="text-xs text-zinc-500">Longest</div>
         </div>
         <div>
-          <div className="text-2xl font-semibold">{daysToBeat}</div>
+          <div className="text-2xl font-semibold" style={{color:THEME.pink}}>{daysToBeat}</div>
           <div className="text-xs text-zinc-500">Days to beat</div>
         </div>
       </div>
@@ -462,8 +459,8 @@ function EatOutCard() {
     <Card title="Eat-out (MTD)">
       <div className="flex items-center justify-between">
         <div>
-          <div className="text-lg font-semibold">₹{mtd.toLocaleString()}</div>
-          <div className="text-xs text-zinc-500">{outings} outings • avg ₹{avg}</div>
+            <div className="text-lg font-semibold" style={{color:THEME.pink}}>₹{mtd.toLocaleString()}</div>
+          <div className="text-xs" style={{color:THEME.sub}}>{outings} outings • avg <span style={{color:THEME.pink}}>₹{avg}</span></div>
         </div>
         {budget && (
           <div className="px-3 py-1.5 rounded-xl text-xs"
@@ -485,10 +482,11 @@ function BookCard() {
         <div className="w-12 h-16 rounded-lg bg-zinc-200 dark:bg-zinc-800" />
         <div className="flex-1">
           <div className="font-medium">{book.title}</div>
-          <div className="text-xs text-zinc-500 mb-1">{book.author}</div>
-          <div className="w-full h-2 bg-zinc-200 dark:bg-zinc-800 rounded-full overflow-hidden">
-            <div className="h-full bg-indigo-500" style={{ width: `${progressPct}%` }} />
-          </div>
+          <div className="w-full h-2 rounded-full overflow-hidden"
+            style={{ background: THEME.greyChip, border:`1px solid ${THEME.cardBorder}` }}>
+                <div className="h-full" style={{ width: `${progressPct}%`, background: THEME.pink }} />
+            </div>
+          
           <div className="text-xs text-zinc-500 mt-1">{progressPct}% • pace {pace7} ppd • ETA {etaDays}d</div>
         </div>
       </div>
