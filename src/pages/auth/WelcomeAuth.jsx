@@ -5,7 +5,7 @@ export default function WelcomeAuth() {
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-gradient-to-br from-black via-black to-pink-200">
       {/* header */}
       <header className="absolute top-6 left-0 right-0 flex items-center justify-between px-6 md:px-10">
-        <Link to="/" className="text-base md:text-lg font-semibold text-pink-300">
+        <Link to="/" className="text-base md:text-lg font-semibold text-pink-200">
           Blush & Bloom
         </Link>
       </header>
@@ -26,7 +26,7 @@ export default function WelcomeAuth() {
           </Link>
           <Link
             to="/signup"
-            className="inline-flex items-center justify-center rounded-xl px-5 py-3 text-sm font-medium bg-gradient-to-r from-pink-200 to-pink-300 text-black hover:brightness-110 shadow-lg active:scale-[0.99] transition"
+            className="inline-flex items-center justify-center rounded-xl border border-transparent px-5 py-3 text-sm font-medium bg-pink-200 text-black hover:bg-black hover:text-pink-200 hover:border-pink-200 shadow-lg active:scale-[0.99] transition"
           >
             Sign up
           </Link>
@@ -34,8 +34,8 @@ export default function WelcomeAuth() {
 
         <p className="mt-5 text-center text-xs text-pink-200">
           By continuing, you agree to the{" "}
-          <span className="text-pink-300">Terms</span> &{" "}
-          <span className="text-pink-300">Privacy</span>
+          <span className="text-pink-200">Terms</span> &{" "}
+          <span className="text-pink-200">Privacy</span>
         </p>
       </div>
     </div>

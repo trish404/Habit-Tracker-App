@@ -3,6 +3,7 @@ import Landing from "./pages/Landing";
 import Login from "./pages/auth/Login";
 import Signup from "./pages/auth/Signup";
 import WelcomeAuth from "./pages/auth/WelcomeAuth";
+import Dashboard from "./pages/Dashboard";
 
 // Later we’ll add:
 // import Dashboard from "./pages/Dashboard";
@@ -19,6 +20,7 @@ function App() {
       <Route path="/get-started" element={<WelcomeAuth />} />
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<Signup />} />
+      <Route path="/dashboard" element={<Dashboard />} />
 
       {/* Placeholder protected routes (we'll build these after auth) */}
       {/* <Route path="/dashboard" element={<Dashboard />} /> */}
