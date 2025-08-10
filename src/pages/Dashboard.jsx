@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { create } from "zustand";
+import { useNavigate } from "react-router-dom";
 import {
   LineChart,
   Line,
@@ -300,8 +301,9 @@ function KPI({ label, value, sub }) {
 \***********************/
 
 function HeaderBar() {
-  const rangeDays = useStore((s) => s.rangeDays);
-  const setRangeDays = useStore((s) => s.setRangeDays);
+    const navigate = useNavigate();
+    const rangeDays = useStore((s) => s.rangeDays);
+    const setRangeDays = useStore((s) => s.setRangeDays);
 
   return (
     <div className="flex items-center justify-between gap-2">
@@ -320,7 +322,11 @@ function HeaderBar() {
             </button>
           ))}
         </div>
-        <button className="px-3 py-1.5 text-sm rounded-xl" style={{ background: THEME.greyChip, color: THEME.text, border:`1px solid ${THEME.cardBorder}`, boxShadow: THEME.glow }}>
+        <button className="px-3 py-1.5 text-sm rounded-xl"
+        onClick={() => navigate("/habits")}
+        style={{ background: THEME.greyChip, color: THEME.text, border:`1px solid ${THEME.cardBorder}`, boxShadow: THEME.glow }}
+        
+        >
             + Habit</button>
         <button className="px-3 py-1.5 text-sm rounded-xl" style={{ background: THEME.greyChip, color: THEME.text, border:`1px solid ${THEME.cardBorder}`, boxShadow: THEME.glow }}>
             + Weight</button>
