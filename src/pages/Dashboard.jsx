@@ -673,29 +673,31 @@ export default function Dashboard() {
         </div>
         <KPIRow />
 
-        <div className="grid grid-cols-12 gap-4 pr-4 xl:pr-6">
+        <div className="grid grid-cols-12 gap-4 items-start">
           {/* Main grid */}
-          <div className="col-span-12 lg:col-span-8 xl:col-span-9 space-y-4">
+          <div className="col-span-12 lg:col-span-9 space-y-4">
             <TodayGrid />
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <AdherenceSparkline />
               <SpendBars />
             </div>
-            <HabitHeatmap />
+            <div className="h-[320px]"> {/* Match height to right stack */}
+                <HabitHeatmap />
+            </div>
           </div>
           {/* Right rail */}
-          <div className="col-span-12 lg:col-span-4 xl:col-span-3 space-y-4">
+          <div className="col-span-12 lg:col-span-3 flex flex-col gap-4">
             <StreaksCard />
             <EatOutCard />
             <BookCard />
-            <WeightTracker />
+            <div className="flex-1 min-h-[150px]">
+                <WeightTracker />
+            </div>
             <InsightsCard />
           </div>
         </div>
 
-        <footer className="pt-8 text-center text-xs text-zinc-500">
-          
-        </footer>
+        
       </div>
     </div>
   );
