@@ -14,6 +14,7 @@ import {
   getDaysInMonth,
 } from "date-fns";
 import { Search, ChevronLeft, ChevronRight } from "lucide-react";
+import { Link } from "react-router-dom";
 
 // --- Theme (mirrors Dashboard) ---
 const THEME = {
@@ -616,9 +617,16 @@ export default function HabitsPage() {
                   onChange={(e) => setQuery(e.target.value)}
                   placeholder="Search habits"
                   className="pl-8 h-9 w-full rounded-xl text-sm outline-none"
-                  style={{ background: THEME.greyChip, color: THEME.text, border: `1px solid ${THEME.cardBorder}` }}
+                  style={{ background: THEME.greyChip, color: THEME.text, border: `1px solid ${THEME.cardBorder}`, boxShadow: THEME.glow }}
                 />
               </div>
+            <Link
+                to="/dashboard"
+                className="h-9 px-3 rounded-xl text-sm shrink-0 flex items-center justify-center"
+                style={{ background: THEME.greyChip, color: THEME.text, border: `1px solid ${THEME.cardBorder}`, boxShadow: THEME.glow }}
+                >
+                    Dashboard
+            </Link>
               <button
                 onClick={() => setOpenCreate(true)}
                 className="h-9 px-3 rounded-xl text-sm shrink-0"
