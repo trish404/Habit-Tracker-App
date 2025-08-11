@@ -322,14 +322,29 @@ function HeaderBar() {
             </button>
           ))}
         </div>
-        <button className="px-3 py-1.5 text-sm rounded-xl"
-        onClick={() => navigate("/habits")}
-        style={{ background: THEME.greyChip, color: THEME.text, border:`1px solid ${THEME.cardBorder}`, boxShadow: THEME.glow }}
-        
+        <button
+            className="px-3 py-1.5 text-sm rounded-xl"
+            onClick={() => navigate("/weights")}
+            style={{
+                background: THEME.greyChip,
+                color: THEME.text,
+                border: `1px solid ${THEME.cardBorder}`,
+                boxShadow: THEME.glow
+            }}
         >
             + Habit</button>
-        <button className="px-3 py-1.5 text-sm rounded-xl" style={{ background: THEME.greyChip, color: THEME.text, border:`1px solid ${THEME.cardBorder}`, boxShadow: THEME.glow }}>
-            + Weight</button>
+            <button
+                className="px-3 py-1.5 text-sm rounded-xl"
+                onClick={() => navigate("/weight")}
+                style={{
+                    background: THEME.greyChip,
+                    color: THEME.text,
+                    border: `1px solid ${THEME.cardBorder}`,
+                    boxShadow: THEME.glow
+                }}
+            >
+                + Weight
+            </button>
         <button className="px-3 py-1.5 text-sm rounded-xl" style={{ background: THEME.greyChip, color: THEME.text, border:`1px solid ${THEME.cardBorder}`, boxShadow: THEME.glow }}>+ Eat-out</button>
         <button className="px-3 py-1.5 text-sm rounded-xl" style={{ background: THEME.greyChip, color: THEME.text, border:`1px solid ${THEME.cardBorder}`, boxShadow: THEME.glow }}>+ Pages</button>
         <button className="px-3 py-1.5 text-sm rounded-xl" style={{ background: THEME.greyChip, color: THEME.text, border:`1px solid ${THEME.cardBorder}`, boxShadow: THEME.glow }}>
