@@ -6,6 +6,7 @@ import WelcomeAuth from "./pages/auth/WelcomeAuth";
 import Dashboard from "./pages/Dashboard";
 import HabitsPage from "./pages/Habits";
 import Weight from "./pages/Weight";
+import EatOut from "./pages/EatOut";
 
 // Later we’ll add:
 // import Dashboard from "./pages/Dashboard";
@@ -25,6 +26,7 @@ function App() {
       <Route path="/dashboard" element={<Dashboard />} />
       <Route path="/habits" element={<HabitsPage />} />
       <Route path="/weight" element={<Weight />} />
+      <Route path="/eat" element={<EatOut />} />
 
       {/* Placeholder protected routes (we'll build these after auth) */}
       {/* <Route path="/dashboard" element={<Dashboard />} /> */}
